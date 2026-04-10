@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>צמר גפן מתוק 🍬</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pink: #D4537E; --pink-dark: #993556; --pink-light: #FBEAF0; --pink-border: #F4C0D1;
+    --text: #1a1a1a; --text-secondary: #6b6b6b; --bg: #f7f5f2; --card: #ffffff;
+    --border: rgba(0,0,0,0.08); --border-strong: rgba(0,0,0,0.15);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  .closed-overlay { position: fixed; top: 0; right: 0; left: 0; bottom: 0; background: rgba(0,0,0,0.92); z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem; }
+  .closed-overlay .closed-icon { font-size: 80px; margin-bottom: 24px; }
+  .closed-overlay h1 { font-size: 28px; font-weight: 700; color: white; margin-bottom: 12px; }
+  .closed-overlay p { font-size: 16px; color: rgba(255,255,255,0.7); line-height: 1.7; max-width: 280px; }
+  .closed-overlay .closed-badge { background: #FCEBEB; color: #A32D2D; font-size: 14px; font-weight: 700; padding: 8px 20px; border-radius: 20px; margin-top: 24px; border: 1.5px solid #F7C1C1; }
+
+  .page { max-width: 480px; margin: 0 auto; padding: 16px 16px 48px; }
+  .hero { text-align: center; padding: 24px 16px 16px; }
+  .hero-icon { font-size: 52px; margin-bottom: 8px; display: block; }
+  .hero h1 { font-size: 26px; font-weight: 700; margin-bottom: 4px; }
+  .hero p { font-size: 14px; color: var(--text-secondary); }
+  .section-label { font-size: 12px; font-weight: 700; color: var(--text-secondary); margin: 16px 0 8px; letter-spacing: 0.8px; text-transform: uppercase; }
+  .product-card { background: var(--card); border: 1.5px solid var(--border); border-radius: 16px; padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; transition: border-color 0.2s; }
+  .product-card.selected { border-color: var(--pink); background: #fff9fb; }
+  .product-icon { width: 50px; height: 50px; border-radius: 50%; background: var(--pink-light); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+  .product-info { flex: 1; }
+  .product-name { font-size: 16px; font-weight: 700; }
+  .product-price { font-size: 13px; color: var(--pink-dark); margin-top: 2px; font-weight: 500; }
+  .qty-control { display: flex; align-items: center; gap: 10px; }
+  .qty-btn { width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid var(--border-strong); background: var(--bg); font-size: 18px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text); }
+  .qty-btn:active { transform: scale(0.92); }
+  .qty-num { font-size: 17px; font-weight: 700; min-width: 22px; text-align: center; }
+  .divider { height: 1px; background: var(--border); margin: 16px 0; }
+  input[type=text], input[type=tel] { width: 100%; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 12px; font-size: 15px; font-family: 'Heebo', sans-serif; background: var(--card); color: var(--text); direction: rtl; margin-bottom: 10px; outline: none; transition: border-color 0.2s; }
+  input:focus { border-color: var(--pink); }
+  .summary-box { background: var(--pink-light); border: 1px solid var(--pink-border); border-radius: 14px; padding: 14px 16px; margin-bottom: 12px; }
+  .summary-row { display: flex; justify-content: space-between; font-size: 14px; color: var(--pink-dark); padding: 3px 0; }
+  .summary-total { display: flex; justify-content: space-between; font-size: 16px; font-weight: 700; color: var(--pink-dark); padding-top: 8px; margin-top: 6px; border-top: 1px solid var(--pink-border); }
+  .note-box { background: #fff8e1; border: 1px solid #ffe082; border-radius: 12px; padding: 10px 14px; font-size: 13px; color: #7a5c00; margin-bottom: 14px; text-align: center; font-weight: 500; }
+  .submit-btn { width: 100%; padding: 15px; background: var(--pink); color: white; border: none; border-radius: 14px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: 'Heebo', sans-serif; transition: all 0.2s; }
+  .submit-btn:active { transform: scale(0.98); background: var(--pink-dark); }
+  .submit-btn:disabled { background: #ccc; cursor: default; transform: none; }
+  .success-screen { display: none; text-align: center; padding: 3rem 1rem; }
+  .success-icon { font-size: 60px; display: block; margin-bottom: 12px; }
+  .success-screen h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+  .success-screen p { font-size: 14px; color: var(--text-secondary); line-height: 1.7; }
+  .new-order-btn { margin-top: 20px; padding: 12px 28px; background: var(--bg); border: 1.5px solid var(--border-strong); border-radius: 12px; font-size: 15px; font-family: 'Heebo', sans-serif; cursor: pointer; font-weight: 500; }
+</style>
+</head>
+<body>
+
+<div class="closed-overlay" id="closed-overlay" style="display:none">
+  <div class="closed-icon">🔒</div>
+  <h1>הדוכן סגור כעת</h1>
+  <p>מצטערים, הדוכן אינו פעיל כרגע. אנא חזרו מאוחר יותר!</p>
+  <div class="closed-badge">🔴 סגור</div>
+</div>
+
+<div class="page">
+  <div id="order-form">
+    <div class="hero">
+      <span class="hero-icon">🍬</span>
+      <h1>צמר גפן מתוק</h1>
+      <p>הזמינו מראש — תשלום במקום</p>
+    </div>
+    <div class="section-label">בחרו גודל וכמות</div>
+    <div class="product-card" id="card-small">
+      <div class="product-icon">🧁</div>
+      <div class="product-info">
+        <div class="product-name">קטן</div>
+        <div class="product-price">₪7</div>
+      </div>
+      <div class="qty-control">
+        <button class="qty-btn" onclick="changeQty('small',-1)">−</button>
+        <span class="qty-num" id="qty-small">0</span>
+        <button class="qty-btn" onclick="changeQty('small',1)">+</button>
+      </div>
+    </div>
+    <div class="product-card" id="card-large">
+      <div class="product-icon">🎪</div>
+      <div class="product-info">
+        <div class="product-name">גדול</div>
+        <div class="product-price">₪10</div>
+      </div>
+      <div class="qty-control">
+        <button class="qty-btn" onclick="changeQty('large',-1)">−</button>
+        <span class="qty-num" id="qty-large">0</span>
+        <button class="qty-btn" onclick="changeQty('large',1)">+</button>
+      </div>
+    </div>
+    <div class="product-card" id="card-huge">
+      <div class="product-icon">🎠</div>
+      <div class="product-info">
+        <div class="product-name">ענק</div>
+        <div class="product-price">₪15</div>
+      </div>
+      <div class="qty-control">
+        <button class="qty-btn" onclick="changeQty('huge',-1)">−</button>
+        <span class="qty-num" id="qty-huge">0</span>
+        <button class="qty-btn" onclick="changeQty('huge',1)">+</button>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="section-label">פרטים</div>
+    <input type="text" id="name" placeholder="שם מלא" oninput="updateSummary()" />
+    <input type="tel" id="phone" placeholder="מספר טלפון (חובה)" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10); updateSummary()" maxlength="10" inputmode="numeric" />
+    <input type="text" id="address" placeholder="כתובת למשלוח (חובה)" oninput="updateSummary()" />
+    <input type="text" id="notes" placeholder="הערות (לא חובה)" />
+    <div class="divider"></div>
+    <div class="summary-box" id="summary-box" style="display:none">
+      <div class="summary-row" id="row-small" style="display:none"><span>קטן</span><span id="sum-small"></span></div>
+      <div class="summary-row" id="row-large" style="display:none"><span>גדול</span><span id="sum-large"></span></div>
+      <div class="summary-row" id="row-huge" style="display:none"><span>ענק</span><span id="sum-huge"></span></div>
+      <div class="summary-total"><span>סה"כ לתשלום במקום</span><span id="total">₪0</span></div>
+    </div>
+    <div style="border: 1.5px solid #B5D4F4; border-radius: 12px; padding: 10px 14px; font-size: 13px; background: #E6F1FB; margin-bottom: 10px; text-align: center; line-height: 1.6;">
+      💼 <strong>רוצים משלוחים גם לעסק שלכם?</strong><br>
+      <span style="color: #185FA5;">האפליקציה פותחה על ידי עמית שבת גולץ</span><br>
+      <a href="mailto:amitshabatgoltz@gmail.com" style="color: #0C447C; font-weight: 700; text-decoration: none;">amitshabatgoltz@gmail.com</a>
+    </div>
+    <div class="note-box">💵 תשלום במזומן בלבד</div>
+    <button class="submit-btn" id="submit-btn" onclick="submitOrder()" disabled>שלחו הזמנה</button>
+  </div>
+  <div class="success-screen" id="success-screen">
+    <span class="success-icon">🎉</span>
+    <h2 id="success-title">ההזמנה התקבלה!</h2>
+    <p id="success-msg"></p>
+    <button class="new-order-btn" onclick="resetForm()">הזמנה נוספת</button>
+  </div>
+</div>
+
+<script>
+const DB = 'https://cotton-candy1-default-rtdb.europe-west1.firebasedatabase.app';
+const qty = { small: 0, large: 0, huge: 0 };
+
+async function checkStatus() {
+  try {
+    const res = await fetch(DB + '/status.json');
+    const data = await res.json();
+    const isOpen = data === null ? true : data.open;
+    document.getElementById('closed-overlay').style.display = isOpen ? 'none' : 'flex';
+  } catch(e) {}
+}
+
+function changeQty(type, delta) {
+  qty[type] = Math.max(0, qty[type] + delta);
+  document.getElementById('qty-' + type).textContent = qty[type];
+  document.getElementById('card-' + type).classList.toggle('selected', qty[type] > 0);
+  updateSummary();
+}
+
+function updateSummary() {
+  const total = qty.small * 7 + qty.large * 10 + qty.huge * 15;
+  const name = document.getElementById('name').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+  const address = document.getElementById('address').value.trim();
+  const hasItems = qty.small > 0 || qty.large > 0 || qty.huge > 0;
+  document.getElementById('summary-box').style.display = hasItems ? 'block' : 'none';
+  document.getElementById('row-small').style.display = qty.small > 0 ? 'flex' : 'none';
+  document.getElementById('row-large').style.display = qty.large > 0 ? 'flex' : 'none';
+  document.getElementById('row-huge').style.display = qty.huge > 0 ? 'flex' : 'none';
+  document.getElementById('sum-small').textContent = qty.small + ' × ₪7 = ₪' + (qty.small * 7);
+  document.getElementById('sum-large').textContent = qty.large + ' × ₪10 = ₪' + (qty.large * 10);
+  document.getElementById('sum-huge').textContent = qty.huge + ' × ₪15 = ₪' + (qty.huge * 15);
+  document.getElementById('total').textContent = '₪' + total;
+  document.getElementById('submit-btn').disabled = !(hasItems && name.length > 1 && phone.length >= 9 && address.length > 2);
+}
+
+async function submitOrder() {
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true; btn.textContent = 'שולח...';
+  const name = document.getElementById('name').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+  const address = document.getElementById('address').value.trim();
+  const notes = document.getElementById('notes').value.trim();
+  const total = qty.small * 7 + qty.large * 10 + qty.huge * 15;
+  const now = new Date();
+  const timeStr = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+  const order = { name, phone, address, notes, small: qty.small, large: qty.large, huge: qty.huge, total, time: timeStr, done: false, timestamp: Date.now() };
+  try {
+    const res = await fetch(DB + '/orders.json', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(order) });
+    if (!res.ok) throw new Error();
+    document.getElementById('order-form').style.display = 'none';
+    document.getElementById('success-screen').style.display = 'block';
+    document.getElementById('success-title').textContent = 'ההזמנה התקבלה! 🎉';
+    document.getElementById('success-msg').textContent = 'עוד כמה דקות יגיע ההזמנה שלך 🛵 תכין במזומן ₪' + total + ' 💵😊';
+  } catch(e) {
+    alert('שגיאה בשליחה, נסו שוב');
+    btn.disabled = false; btn.textContent = 'שלחו הזמנה';
+  }
+}
+
+function resetForm() {
+  qty.small = 0; qty.large = 0; qty.huge = 0;
+  ['small','large','huge'].forEach(t => { document.getElementById('qty-'+t).textContent='0'; document.getElementById('card-'+t).classList.remove('selected'); });
+  ['name','phone','address','notes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('summary-box').style.display = 'none';
+  document.getElementById('submit-btn').disabled = true;
+  document.getElementById('submit-btn').textContent = 'שלחו הזמנה';
+  document.getElementById('order-form').style.display = 'block';
+  document.getElementById('success-screen').style.display = 'none';
+}
+
+checkStatus();
+setInterval(checkStatus, 5000);
+</script>
+</body>
+</html>

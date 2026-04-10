@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>מוכרים — צמר גפן 📋</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pink: #D4537E; --pink-dark: #993556; --pink-light: #FBEAF0; --pink-border: #F4C0D1;
+    --text: #1a1a1a; --text-secondary: #6b6b6b; --text-hint: #aaaaaa;
+    --bg: #f7f5f2; --card: #ffffff; --border: rgba(0,0,0,0.08); --border-strong: rgba(0,0,0,0.15);
+    --green-bg: #EAF3DE; --green-text: #27500A; --green-border: #C0DD97;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  .status-banner { margin: 14px 16px; border-radius: 16px; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; border: 2px solid; transition: all 0.3s; }
+  .status-banner.open { background: #EAF3DE; border-color: #C0DD97; }
+  .status-banner.closed { background: #FCEBEB; border-color: #F7C1C1; }
+  .status-left { display: flex; align-items: center; gap: 10px; }
+  .status-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
+  .status-banner.open .status-dot { background: #27500A; animation: pulse 1.5s infinite; }
+  .status-banner.closed .status-dot { background: #A32D2D; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .status-text { font-size: 17px; font-weight: 700; }
+  .status-banner.open .status-text { color: #27500A; }
+  .status-banner.closed .status-text { color: #A32D2D; }
+  .toggle-btn { padding: 10px 20px; border-radius: 20px; border: none; font-size: 14px; font-weight: 700; font-family: 'Heebo', sans-serif; cursor: pointer; transition: all 0.2s; }
+  .status-banner.open .toggle-btn { background: #A32D2D; color: white; }
+  .status-banner.closed .toggle-btn { background: #27500A; color: white; }
+  .toggle-btn:active { transform: scale(0.96); }
+
+  .header { background: var(--card); border-bottom: 1px solid var(--border); padding: 16px; position: sticky; top: 0; z-index: 10; }
+  .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .header h1 { font-size: 20px; font-weight: 700; }
+  .badge { background: var(--pink-light); color: var(--pink-dark); font-size: 12px; padding: 4px 12px; border-radius: 20px; font-weight: 700; border: 1px solid var(--pink-border); }
+  .stats-row { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; }
+  .stat-card { background: var(--bg); border-radius: 12px; padding: 10px 8px; text-align: center; }
+  .stat-num { font-size: 20px; font-weight: 700; }
+  .stat-label { font-size: 11px; color: var(--text-secondary); margin-top: 1px; }
+  .toolbar { padding: 12px 16px 8px; display: flex; justify-content: space-between; align-items: center; }
+  .filter-row { display: flex; gap: 6px; }
+  .filter-btn { padding: 6px 14px; border: 1.5px solid var(--border); border-radius: 20px; font-size: 13px; font-family: 'Heebo', sans-serif; cursor: pointer; background: var(--card); color: var(--text-secondary); font-weight: 500; transition: all 0.15s; }
+  .filter-btn.active { background: var(--pink-light); color: var(--pink-dark); border-color: var(--pink-border); font-weight: 700; }
+  .refresh-dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; display: inline-block; margin-left: 6px; transition: background 0.3s; }
+  .refresh-dot.live { background: #4caf50; animation: pulse 1.5s infinite; }
+  .refresh-label { font-size: 12px; color: var(--text-hint); display: flex; align-items: center; }
+  .page { padding: 0 16px 48px; }
+  .new-toast { background: var(--pink); color: white; text-align: center; padding: 10px 16px; font-size: 14px; font-weight: 700; cursor: pointer; border-radius: 12px; margin: 8px 16px; display: none; }
+  .order-card { background: var(--card); border: 1.5px solid var(--border); border-radius: 16px; padding: 14px 16px; margin-bottom: 10px; transition: opacity 0.3s; }
+  .order-card.done { opacity: 0.4; }
+  .order-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+  .order-name { font-size: 16px; font-weight: 700; }
+  .order-time { font-size: 12px; color: var(--text-hint); }
+  .order-phone { font-size: 12px; color: var(--text-hint); margin-bottom: 2px; }
+  .order-address { font-size: 12px; color: var(--text-hint); margin-bottom: 6px; }
+  .order-items { font-size: 14px; color: var(--text-secondary); margin-bottom: 4px; }
+  .order-total { font-size: 15px; font-weight: 700; color: var(--pink-dark); }
+  .order-note { font-size: 12px; color: var(--text-secondary); background: var(--bg); border-radius: 8px; padding: 5px 10px; margin-top: 6px; }
+  .order-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .done-btn { flex: 1; padding: 9px; border: 1.5px solid var(--green-border); border-radius: 10px; background: var(--green-bg); font-size: 13px; font-family: 'Heebo', sans-serif; cursor: pointer; color: var(--green-text); font-weight: 700; }
+  .done-btn:active { transform: scale(0.97); }
+  .done-label { font-size: 12px; color: var(--green-text); font-weight: 700; padding: 9px 0; }
+  .delete-btn { padding: 7px 14px; border: 1.5px solid #F7C1C1; border-radius: 10px; background: #FCEBEB; font-size: 13px; font-family: "Heebo", sans-serif; cursor: pointer; color: #A32D2D; font-weight: 700; margin-right: 8px; }
+  .delete-btn:active { background: #F7C1C1; }
+  .delete-mode-btn { padding: 6px 14px; border: 1.5px solid #F7C1C1; border-radius: 20px; font-size: 12px; font-family: "Heebo", sans-serif; cursor: pointer; background: #FCEBEB; color: #A32D2D; font-weight: 700; }
+  .empty-state { text-align: center; padding: 3rem 1rem; color: var(--text-hint); font-size: 15px; }
+  .empty-icon { font-size: 40px; display: block; margin-bottom: 10px; }
+  .amit-card { display: none; background: linear-gradient(135deg, #FBEAF0, #fff); border: 2px solid #F4C0D1; border-radius: 16px; padding: 16px 20px; margin: 12px 16px 0; }
+  .amit-card-title { font-size: 13px; color: #993556; font-weight: 700; margin-bottom: 8px; }
+  .amit-earnings { font-size: 32px; font-weight: 700; color: #D4537E; }
+  .amit-sub { font-size: 12px; color: #993556; margin-top: 4px; }
+  .error-box { background: #fee2e2; border: 1px solid #fca5a5; border-radius: 12px; padding: 12px 16px; font-size: 13px; color: #991b1b; text-align: center; margin: 12px 0; display: none; }
+  .login-overlay { position: fixed; top: 0; right: 0; left: 0; bottom: 0; background: #f7f5f2; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+  .login-box { background: white; border-radius: 20px; padding: 2rem 1.5rem; max-width: 340px; width: 100%; text-align: center; border: 1.5px solid rgba(0,0,0,0.08); }
+  .login-icon { font-size: 52px; margin-bottom: 12px; display: block; }
+  .login-box h2 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .login-box p { font-size: 14px; color: #6b6b6b; margin-bottom: 20px; }
+  .login-box input { width: 100%; padding: 12px 14px; border: 1.5px solid rgba(0,0,0,0.1); border-radius: 12px; font-size: 16px; font-family: 'Heebo', sans-serif; direction: rtl; outline: none; margin-bottom: 10px; text-align: center; letter-spacing: 2px; }
+  .login-box input:focus { border-color: #D4537E; }
+  .login-error { background: #FCEBEB; color: #A32D2D; font-size: 13px; font-weight: 700; padding: 8px 12px; border-radius: 10px; margin-bottom: 10px; }
+  .login-btn { width: 100%; padding: 13px; background: #D4537E; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; font-family: 'Heebo', sans-serif; cursor: pointer; }
+  .login-btn:active { background: #993556; transform: scale(0.98); }
+  .welcome-msg { background: #EAF3DE; color: #27500A; font-size: 14px; font-weight: 700; padding: 10px 14px; border-radius: 10px; margin-bottom: 16px; display: none; }
+</style>
+</head>
+<body>
+
+<div class="login-overlay" id="login-overlay">
+  <div class="login-box">
+    <span class="login-icon">🍬</span>
+    <h2>כניסה למוכרים</h2>
+    <p>הזינו את מספר הטלפון שלכם</p>
+    <div class="welcome-msg" id="welcome-msg"></div>
+    <input type="tel" id="login-phone" placeholder="05XXXXXXXX" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)" maxlength="10" onkeydown="if(event.key==='Enter') doLogin()" />
+    <div class="login-error" id="login-error" style="display:none">המספר לא מורשה להיכנס 🚫</div>
+    <button class="login-btn" onclick="doLogin()">כניסה ←</button>
+  </div>
+</div>
+
+<div id="status-banner" class="status-banner open">
+  <div class="status-left">
+    <div class="status-dot"></div>
+    <div class="status-text" id="status-text">הדוכן פעיל 🟢</div>
+  </div>
+  <button class="toggle-btn" id="toggle-btn" onclick="toggleStatus()">סגור דוכן</button>
+</div>
+
+<div class="header">
+  <div class="header-top">
+    <h1>📋 הזמנות</h1>
+    <span class="badge" id="pending-badge">0 ממתינות</span>
+  </div>
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-num" id="stat-total">0</div><div class="stat-label">הזמנות</div></div>
+    <div class="stat-card"><div class="stat-num" id="stat-revenue">₪0</div><div class="stat-label">סה"כ</div></div>
+    <div class="stat-card"><div class="stat-num" id="stat-done">0</div><div class="stat-label">הושלמו</div></div>
+  </div>
+</div>
+
+<div class="amit-card" id="amit-card">
+  <div class="amit-card-title">💰 הרווח שלך היום (10%)</div>
+  <div class="amit-earnings" id="amit-earnings">₪0</div>
+  <div class="amit-sub" id="amit-sub">מתוך ₪0 מכירות היום</div>
+</div>
+
+<div class="toolbar">
+  <div class="filter-row">
+    <button class="filter-btn active" onclick="setFilter('all',this)">הכל</button>
+    <button class="filter-btn" onclick="setFilter('pending',this)">ממתינות</button>
+    <button class="filter-btn" onclick="setFilter('done',this)">הושלמו</button>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center"><button class="delete-mode-btn" onclick="promptDeleteCode()">🗑 מחק הושלמו</button><div class="refresh-label"><span class="refresh-dot live" id="refresh-dot"></span>חי</div></div>
+</div>
+
+<div class="new-toast" id="new-toast" onclick="dismissToast()">🔔 הגיעה הזמנה חדשה!</div>
+<div class="error-box" id="error-box">שגיאה בחיבור. בדקו אינטרנט.</div>
+<div class="page" id="orders-list"></div>
+
+<script>
+const DB = 'https://cotton-candy1-default-rtdb.europe-west1.firebasedatabase.app';
+
+const ALLOWED = {
+  '0555691582': 'איתי',
+  '0523345491': 'מיכאל',
+  '0548385325': 'עמית',
+  '0534829364': 'חולי',
+  '0547627878': 'דן'
+};
+
+let isAmit = false;
+
+function doLogin() {
+  const phone = document.getElementById('login-phone').value.trim();
+  const name = ALLOWED[phone];
+  if (name) {
+    isAmit = (phone === '0548385325');
+    const welcome = document.getElementById('welcome-msg');
+    welcome.textContent = '👋 שלום ' + name + '! כיף שחזרת';
+    welcome.style.display = 'block';
+    setTimeout(() => {
+      document.getElementById('login-overlay').style.display = 'none';
+      if (isAmit) {
+        document.getElementById('amit-card').style.display = 'block';
+        updateAmitEarnings();
+      }
+    }, 1200);
+    document.getElementById('login-error').style.display = 'none';
+  } else {
+    document.getElementById('login-error').style.display = 'block';
+    document.getElementById('login-phone').value = '';
+    document.getElementById('login-phone').focus();
+  }
+}
+let allOrders = [];
+let currentFilter = 'all';
+let lastTimestamp = 0;
+let isFirstLoad = true;
+let isOpen = true;
+let canDelete = false;
+
+function promptDeleteCode() {
+  const code = prompt("הזינו קוד מחיקה:");
+  if (code === "192013") {
+    canDelete = true;
+    alert("✅ מצב מחיקה פעיל — כעת ניתן למחוק הזמנות שהושלמו");
+    render();
+  } else {
+    alert("קוד שגוי ❌");
+  }
+}
+
+async function loadStatus() {
+  try {
+    const res = await fetch(DB + '/status.json');
+    const data = await res.json();
+    isOpen = data === null ? true : data.open;
+    updateStatusUI();
+  } catch(e) {}
+}
+
+async function toggleStatus() {
+  isOpen = !isOpen;
+  await fetch(DB + '/status.json', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ open: isOpen }) });
+  updateStatusUI();
+}
+
+function updateStatusUI() {
+  const banner = document.getElementById('status-banner');
+  const text = document.getElementById('status-text');
+  const btn = document.getElementById('toggle-btn');
+  if (isOpen) {
+    banner.className = 'status-banner open';
+    text.textContent = 'הדוכן פעיל 🟢';
+    btn.textContent = 'סגור דוכן';
+  } else {
+    banner.className = 'status-banner closed';
+    text.textContent = 'הדוכן סגור 🔴';
+    btn.textContent = 'פתח דוכן';
+  }
+}
+
+async function fetchOrders() {
+  try {
+    const res = await fetch(DB + '/orders.json');
+    if (!res.ok) throw new Error();
+    document.getElementById('error-box').style.display = 'none';
+    document.getElementById('refresh-dot').classList.add('live');
+    const data = await res.json();
+    if (!data) { allOrders = []; render(); return; }
+    const arr = Object.entries(data).map(([id, o]) => ({ ...o, id }));
+    arr.sort((a, b) => b.timestamp - a.timestamp);
+    if (!isFirstLoad) {
+      const newOrders = arr.filter(o => o.timestamp > lastTimestamp && !o.done);
+      if (newOrders.length > 0) document.getElementById('new-toast').style.display = 'block';
+    }
+    if (arr.length > 0) lastTimestamp = Math.max(...arr.map(o => o.timestamp));
+    allOrders = arr;
+    isFirstLoad = false;
+    render();
+  } catch(e) {
+    document.getElementById('error-box').style.display = 'block';
+    document.getElementById('refresh-dot').classList.remove('live');
+  }
+}
+
+function updateAmitEarnings() {
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const endOfDay = startOfDay + 24 * 60 * 60 * 1000;
+  const todayOrders = allOrders.filter(o => o.timestamp >= startOfDay && o.timestamp < endOfDay);
+  const todayRevenue = todayOrders.reduce((s, o) => s + o.total, 0);
+  const myShare = parseFloat((todayRevenue / 10).toFixed(2));
+  const display = Number.isInteger(myShare) ? myShare : myShare.toFixed(2);
+  document.getElementById('amit-earnings').textContent = '₪' + display;
+  document.getElementById('amit-sub').textContent = 'מתוך ₪' + todayRevenue + ' מכירות היום (' + todayOrders.length + ' הזמנות)';
+}
+
+function render() {
+  const filtered = allOrders.filter(o => currentFilter === 'all' ? true : currentFilter === 'done' ? o.done : !o.done);
+  const pending = allOrders.filter(o => !o.done).length;
+  document.getElementById('pending-badge').textContent = pending + ' ממתינות';
+  document.getElementById('stat-total').textContent = allOrders.length;
+  document.getElementById('stat-revenue').textContent = '₪' + allOrders.reduce((s,o) => s + o.total, 0);
+  document.getElementById('stat-done').textContent = allOrders.filter(o => o.done).length;
+  const list = document.getElementById('orders-list');
+  if (isAmit) updateAmitEarnings();
+  if (filtered.length === 0) { list.innerHTML = '<div class="empty-state"><span class="empty-icon">📭</span>אין הזמנות עדיין</div>'; return; }
+  list.innerHTML = filtered.map(o => `
+    <div class="order-card ${o.done ? 'done' : ''}">
+      <div class="order-top">
+        <div class="order-name">${o.name}</div>
+        <div class="order-time">${o.time}</div>
+      </div>
+      ${o.phone ? `<div class="order-phone">📞 ${o.phone}</div>` : ''}
+      ${o.address ? `<div class="order-address">📍 ${o.address}</div>` : ''}
+      <div class="order-items">${o.small > 0 ? o.small + ' × קטן' : ''}${o.small > 0 && (o.large > 0 || o.huge > 0) ? ' + ' : ''}${o.large > 0 ? o.large + ' × גדול' : ''}${o.large > 0 && o.huge > 0 ? ' + ' : ''}${o.huge > 0 ? o.huge + ' × ענק' : ''}</div>
+      <div class="order-total">₪${o.total} — תשלום במקום</div>
+      ${o.notes ? `<div class="order-note">📝 ${o.notes}</div>` : ''}
+      <div class="order-actions">
+        ${!o.done ? `<button class="done-btn" onclick="markDone('${o.id}')">✓ סומן כהושלם</button>` : `<span class="done-label">✓ הושלם</span>${canDelete ? `<button class="delete-btn" onclick="deleteOrder('${o.id}')">🗑 מחק</button>` : ''}`}
+      </div>
+    </div>
+  `).join('');
+}
+
+async function deleteOrder(id) {
+  try {
+    await fetch(DB + "/orders/" + id + ".json", { method: "DELETE" });
+    await fetchOrders();
+  } catch(e) { alert("שגיאה, נסו שוב"); }
+}
+
+async function markDone(id) {
+  try {
+    await fetch(DB + '/orders/' + id + '.json', { method: 'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ done: true }) });
+    await fetchOrders();
+  } catch(e) { alert('שגיאה, נסו שוב'); }
+}
+
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function dismissToast() { document.getElementById('new-toast').style.display = 'none'; }
+
+loadStatus();
+fetchOrders();
+setInterval(() => { loadStatus(); fetchOrders(); }, 5000);
+</script>
+</body>
+</html>
