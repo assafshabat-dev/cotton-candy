@@ -50,6 +50,16 @@
   .success-icon { font-size: 60px; display: block; margin-bottom: 12px; }
   .success-screen h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
   .success-screen p { font-size: 14px; color: var(--text-secondary); line-height: 1.7; }
+  .courier-overlay { position: fixed; top: 0; right: 0; left: 0; bottom: 0; background: rgba(0,0,0,0.93); z-index: 998; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem; }
+  .courier-overlay .courier-icon { font-size: 70px; margin-bottom: 20px; animation: bounce 1s infinite alternate; }
+  @keyframes bounce { 0%{transform:translateY(0)} 100%{transform:translateY(-10px)} }
+  .courier-overlay h2 { font-size: 24px; font-weight: 700; color: white; margin-bottom: 10px; }
+  .courier-overlay .courier-info { background: rgba(255,255,255,0.1); border: 1.5px solid rgba(255,255,255,0.2); border-radius: 16px; padding: 16px 24px; margin: 16px 0 24px; }
+  .courier-overlay .courier-name { font-size: 22px; font-weight: 700; color: white; margin-bottom: 6px; }
+  .courier-overlay .courier-phone { font-size: 18px; color: rgba(255,255,255,0.8); }
+  .courier-overlay .arrived-btn { padding: 16px 36px; background: #27500A; color: white; border: none; border-radius: 14px; font-size: 17px; font-weight: 700; font-family: 'Heebo', sans-serif; cursor: pointer; }
+  .courier-overlay .arrived-btn:active { transform: scale(0.97); }
+  .courier-overlay .waiting-msg { font-size: 14px; color: rgba(255,255,255,0.5); margin-bottom: 20px; }
   .new-order-btn { margin-top: 20px; padding: 12px 28px; background: var(--bg); border: 1.5px solid var(--border-strong); border-radius: 12px; font-size: 15px; font-family: 'Heebo', sans-serif; cursor: pointer; font-weight: 500; }
 </style>
 </head>
@@ -135,6 +145,17 @@
   </div>
 </div>
 
+<div class="courier-overlay" id="courier-overlay">
+  <div class="courier-icon">🛵</div>
+  <h2>ההזמנה בדרך אליך!</h2>
+  <div class="waiting-msg" id="courier-waiting" style="display:none">ממתין לשליח...</div>
+  <div class="courier-info" id="courier-info" style="display:none">
+    <div class="courier-name" id="courier-name"></div>
+    <div class="courier-phone" id="courier-phone"></div>
+  </div>
+  <button class="arrived-btn" onclick="markArrived()">✓ ההזמנה הגיעה הביתה</button>
+</div>
+
 <script>
 const DB = 'https://cotton-candy1-default-rtdb.europe-west1.firebasedatabase.app';
 const qty = { small: 0, large: 0, huge: 0 };
@@ -186,6 +207,8 @@ async function submitOrder() {
   try {
     const res = await fetch(DB + '/orders.json', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(order) });
     if (!res.ok) throw new Error();
+    const data = await res.json();
+    currentOrderId = data.name;
     document.getElementById('order-form').style.display = 'none';
     document.getElementById('success-screen').style.display = 'block';
     document.getElementById('success-title').textContent = 'ההזמנה התקבלה! 🎉';
@@ -207,8 +230,38 @@ function resetForm() {
   document.getElementById('success-screen').style.display = 'none';
 }
 
+let currentOrderId = null;
+
+async function checkCourier() {
+  if (!currentOrderId) return;
+  try {
+    const res = await fetch(DB + '/orders/' + currentOrderId + '.json');
+    const order = await res.json();
+    if (!order) return;
+    const overlay = document.getElementById('courier-overlay');
+    if (order.done) {
+      overlay.style.display = 'flex';
+      if (order.courierName) {
+        document.getElementById('courier-waiting').style.display = 'none';
+        document.getElementById('courier-info').style.display = 'block';
+        document.getElementById('courier-name').textContent = '🏃 ' + order.courierName;
+        document.getElementById('courier-phone').textContent = '📞 ' + order.courierPhone;
+      } else {
+        document.getElementById('courier-waiting').style.display = 'block';
+        document.getElementById('courier-info').style.display = 'none';
+      }
+    }
+  } catch(e) {}
+}
+
+function markArrived() {
+  document.getElementById('courier-overlay').style.display = 'none';
+  currentOrderId = null;
+}
+
 checkStatus();
 setInterval(checkStatus, 5000);
+setInterval(checkCourier, 4000);
 </script>
 </body>
 </html>

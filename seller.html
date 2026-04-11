@@ -138,6 +138,26 @@
 <div class="error-box" id="error-box">שגיאה בחיבור. בדקו אינטרנט.</div>
 <div class="page" id="orders-list"></div>
 
+<div class="courier-modal" id="courier-modal" style="display:none">
+  <div class="courier-box">
+    <h3>מי עושה את המשלוח? 🛵</h3>
+    <p>חובה לבחור שליח לפני סימון הושלם</p>
+    <button class="courier-option" onclick="selectCourier('איתי','0555691582')">
+      <span>איתי</span><span class="courier-phone">0555691582</span>
+    </button>
+    <button class="courier-option" onclick="selectCourier('מיכאל','0523345491')">
+      <span>מיכאל</span><span class="courier-phone">0523345491</span>
+    </button>
+    <button class="courier-option" onclick="selectCourier('חולי','0534829364')">
+      <span>חולי</span><span class="courier-phone">0534829364</span>
+    </button>
+    <button class="courier-option" onclick="selectCourier('דן','0547627878')">
+      <span>דן</span><span class="courier-phone">0547627878</span>
+    </button>
+    <button class="courier-cancel" onclick="closeCourierModal()">ביטול</button>
+  </div>
+</div>
+
 <script>
 const DB = 'https://cotton-candy1-default-rtdb.europe-west1.firebasedatabase.app';
 
@@ -150,6 +170,31 @@ const ALLOWED = {
 };
 
 let isAmit = false;
+let pendingDoneId = null;
+
+function openCourierModal(id) {
+  pendingDoneId = id;
+  document.getElementById('courier-modal').style.display = 'flex';
+}
+
+function closeCourierModal() {
+  pendingDoneId = null;
+  document.getElementById('courier-modal').style.display = 'none';
+}
+
+async function selectCourier(name, phone) {
+  document.getElementById('courier-modal').style.display = 'none';
+  if (!pendingDoneId) return;
+  try {
+    await fetch(DB + '/orders/' + pendingDoneId + '.json', {
+      method: 'PATCH',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ done: true, courierName: name, courierPhone: phone })
+    });
+    pendingDoneId = null;
+    await fetchOrders();
+  } catch(e) { alert('שגיאה, נסו שוב'); }
+}
 
 function doLogin() {
   const phone = document.getElementById('login-phone').value.trim();
@@ -279,7 +324,7 @@ function render() {
       <div class="order-total">₪${o.total} — תשלום במקום</div>
       ${o.notes ? `<div class="order-note">📝 ${o.notes}</div>` : ''}
       <div class="order-actions">
-        ${!o.done ? `<button class="done-btn" onclick="markDone('${o.id}')">✓ סומן כהושלם</button>` : `<span class="done-label">✓ הושלם</span>${canDelete ? `<button class="delete-btn" onclick="deleteOrder('${o.id}')">🗑 מחק</button>` : ''}`}
+        ${!o.done ? `<button class="done-btn" onclick="openCourierModal('${o.id}')">✓ סומן כהושלם</button>` : `<span class="done-label">✓ הושלם</span>${canDelete ? `<button class="delete-btn" onclick="deleteOrder('${o.id}')">🗑 מחק</button>` : ''}`}
       </div>
     </div>
   `).join('');
